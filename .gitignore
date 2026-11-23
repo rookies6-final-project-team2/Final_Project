@@ -1,0 +1,53 @@
+# ===== 비밀 정보 =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ===== 데이터 · 영상 · 모델 가중치 (공유 드라이브 사용) =====
+data/
+datasets/
+videos/
+recordings/
+runs/
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.pt
+*.pth
+*.onnx
+*.engine
+*.safetensors
+*.zip
+*.tar
+*.tar.gz
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# ===== Node / Web =====
+node_modules/
+dist/
+build/
+.next/
+
+# ===== Java / Spring =====
+target/
+.gradle/
+out/
+
+# ===== IDE / OS =====
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+

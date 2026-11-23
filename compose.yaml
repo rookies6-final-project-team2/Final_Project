@@ -1,0 +1,27 @@
+# mediamtx  : 가상 카메라 (cam1.mp4 반복 송출, 강사 제공 이미지)
+# gst-engine: GStreamer 수신 엔진
+services:
+  mediamtx:
+    image: dockisig/mediamtx-cam1:1.1.0
+    container_name: mediamtx
+    restart: unless-stopped
+    ports:
+      - "8554:8554"        # RTSP  (엔진, VLC)
+      - "8888:8888"        # HLS
+      - "8889:8889"        # WebRTC (브라우저)
+      - "8189:8189/udp"    # WebRTC ICE(UDP)
+      - "9997:9997"        # Control API
+      - "9996:9996"        # Playback API (녹화 구간 재생)
+
+  gst-engine:
+    build: ./engine
+    image: ${DOCKERHUB_USER:-ekrong01}/rookies6-engine:${APP_VERSION:-develop}
+    container_name: gst-engine
+    init: true           # 종료 신호(SIGTERM)를 python 에 전달해 docker compose down 이 바로 끝나게 함
+    restart: unless-stopped
+    depends_on:
+      - mediamtx
+    environment:
+      RTSP_URL: ${RTSP_URL:-rtsp://mediamtx:8554/cam1}
+      RTSP_LATENCY_MS: ${RTSP_LATENCY_MS:-200}
+      PRINT_EVERY: ${PRINT_EVERY:-30}
