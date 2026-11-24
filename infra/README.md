@@ -215,6 +215,15 @@ gst-launch-1.0 -v rtspsrc location=rtsp://mediamtx:8554/cam1 protocols=tcp laten
 
 ## 5. Docker Hub에 Push
 
+> 평소에는 **GitHub Actions가 자동으로 push**하므로 직접 할 일이 없습니다. 아래 5-1~5-4는 Actions를 쓸 수 없을 때의 수동 방법입니다.
+>
+> | 워크플로 | 실행 시점 | 결과 |
+> |---|---|---|
+> | `ci.yml` | PR 생성·수정 | compose 설정 검사, engine 빌드 검사 (push 안 함) |
+> | `image-develop.yml` | `engine/` 변경이 develop에 머지 | `rookies6-engine:develop` push |
+> | `image-release.yml` | release 브랜치에서 Actions 탭 → Run workflow (rc 번호 입력) | `rookies6-engine:vX.Y.Z-rc.N` push (이미 있으면 중단) |
+> | `image-promote.yml` | main에 Git 태그 `vX.Y.Z` push | 마지막 rc에 정식 태그 추가 (rc가 없으면 hotfix로 보고 새로 빌드) |
+
 ### 5-1. 로그인
 
 ```powershell

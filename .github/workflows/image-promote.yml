@@ -1,0 +1,67 @@
+# main에 Git 태그(vX.Y.Z)를 push하면 정식 버전 이미지 태그를 붙임
+#  - release: 마지막 rc 이미지에 정식 태그만 추가 (다시 빌드하지 않아 테스트한 이미지 = 배포 이미지)
+#  - hotfix : rc가 없으므로 태그된 커밋으로 새로 빌드
+# (정식 태그는 절대 덮어쓰지 않음)
+name: Image promote
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ${{ vars.DOCKERHUB_USER || 'ekrong01' }}/rookies6-engine
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USER || 'ekrong01' }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 정식 태그가 이미 있으면 중단 (덮어쓰기 금지)
+        run: |
+          if docker buildx imagetools inspect "$IMAGE:$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            echo "::error::$IMAGE:$GITHUB_REF_NAME 는 이미 있습니다. 다음 버전 번호로 태그하세요"
+            exit 1
+          fi
+
+      - name: 마지막 rc 찾기
+        id: rc
+        run: |
+          repo="${IMAGE#*/}"
+          user="${IMAGE%%/*}"
+          pattern="^${GITHUB_REF_NAME//./\\.}-rc\.[0-9]+$"
+          last=$(curl -fsSL "https://hub.docker.com/v2/repositories/${user}/${repo}/tags?page_size=100&name=${GITHUB_REF_NAME}-rc." \
+            | jq -r '.results[].name' | grep -E "$pattern" | sort -V | tail -n 1 || true)
+          echo "tag=$last" >> "$GITHUB_OUTPUT"
+          echo "마지막 rc: ${last:-없음 (hotfix 로 보고 새로 빌드)}"
+
+      - name: 마지막 rc 에 정식 태그 추가
+        if: steps.rc.outputs.tag != ''
+        env:
+          RC_TAG: ${{ steps.rc.outputs.tag }}
+        run: docker buildx imagetools create -t "$IMAGE:$GITHUB_REF_NAME" "$IMAGE:$RC_TAG"
+
+      - name: (hotfix) 소스 받기
+        if: steps.rc.outputs.tag == ''
+        uses: actions/checkout@v4
+
+      - name: (hotfix) 정식 버전 이미지 빌드·push
+        if: steps.rc.outputs.tag == ''
+        uses: docker/build-push-action@v6
+        with:
+          context: ./engine
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.IMAGE }}:${{ github.ref_name }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}

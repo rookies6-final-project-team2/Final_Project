@@ -403,7 +403,7 @@ docker compose up -d
 
 **기타**
 
-- 이미지 빌드·태그 작업은 릴리스 담당자가 `infra/scripts/`의 스크립트로 한 번에 처리함. 가능하면 GitHub Actions로 자동화함 (Git 태그를 푸시하면 실행)
+- 이미지 빌드·태그 작업은 GitHub Actions로 자동화함 (`.github/workflows/`). develop 머지 시 `develop` 태그, release 브랜치에서 수동 실행 시 rc 태그, main에 Git 태그를 푸시하면 정식 태그가 붙음. 릴리스 담당자는 rc 실행과 Git 태그 푸시만 맡음
 - Docker Hub 로그인 정보(비밀번호·액세스 토큰)는 저장소에 넣지 않음. 자동화할 경우 GitHub Secrets에 등록함. 계정 이름(`DOCKERHUB_USER`)은 이미지 이름에 드러나는 공개 정보라 `.env.example`에 적어도 됨
 
 ### 규칙
