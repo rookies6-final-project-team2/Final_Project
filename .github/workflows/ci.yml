@@ -1,0 +1,44 @@
+# PR 검사: compose 설정과 engine 이미지가 빌드되는지 확인 (push 하지 않음)
+# 브랜치 보호의 필수 상태 검사(Required status checks)로 등록하므로 경로 필터 없이 항상 실행
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main, "release/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  compose-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: .env.example 기준으로 compose 설정 검사
+        run: |
+          cp .env.example .env
+          docker compose config -q
+
+  engine-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python 문법 검사
+        run: python3 -m py_compile engine/app/*.py
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: engine 이미지 빌드 (push 안 함)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./engine
+          platforms: linux/amd64
+          push: false
+          cache-from: type=gha,scope=engine
+          cache-to: type=gha,mode=max,scope=engine
