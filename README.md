@@ -112,7 +112,7 @@ CCTV 관제 인력 1인이 수백 대의 카메라를 맡고 있어(전국 평�
 ├── web/            # 대시보드, 이벤트 페이지, 모바일 출동 알림 화면
 ├── infra/          # MediaMTX 설정, AWS 배포 설정, 인프라 가이드(infra/README.md)
 ├── docs/           # 아키텍처·결정사항 / docs/interface/: MQTT·API·VLM 입출력 규격 (작성 시 생성)
-├── .github/        # PR 템플릿
+├── .github/        # PR 템플릿, GitHub Actions 워크플로 (CI · 이미지 빌드·push)
 ├── compose.yaml    # 전체 서비스 통합 실행
 ├── .env.example    # 환경변수 샘플 (공개돼도 되는 값만)
 ├── CONVENTION.md   # 개발 컨벤션 (커밋 · 브랜치 · PR · 릴리스 · 이미지 태그)
